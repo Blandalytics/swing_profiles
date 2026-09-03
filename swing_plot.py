@@ -391,7 +391,7 @@ def plot_swing_kinematics(
             trough = int(np.argmin(j))
             ax_j.axhline(0, color=c["chrome"], linewidth=1.0, zorder=1)
             ax_j.plot(
-                t, j, color=c["jerk"], linewidth=2.0, solid_capstyle="round", zorder=3
+                t[9:-10], j[9:-10], color=c["jerk"], linewidth=2.0, solid_capstyle="round", zorder=3
             )
             ax_j.plot(
                 [t[trough]],
