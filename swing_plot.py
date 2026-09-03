@@ -352,7 +352,7 @@ def plot_swing_kinematics(
         )
         ax_v.set_ylabel("Bat speed (mph)", fontsize=10, color=c["text"])
         ax_v.set_ylim(0, speed_ylim)
-        ax_v.set_xlim(t[0], t[-1]*1.025)
+        ax_v.set_xlim(t[0], t[-1]*1.01)
 
         # --- derivative ----------------------------------------------------
         peak = int(np.argmax(a))
@@ -385,7 +385,7 @@ def plot_swing_kinematics(
             color=c["text"],
         )
         ax_a.set_ylim(min(0, a.min() * 1.1), accel_ylim)
-        ax_a.set_xlim(t[0], t[-1]*1.025)
+        ax_a.set_xlim(t[0], t[-1]*1.01)
 
         # --- jerk ----------------------------------------------------------
         if show_jerk:
@@ -426,7 +426,7 @@ def plot_swing_kinematics(
                 color=c["text"],
             )
             ax_j.set_ylim(lo, hi)
-            ax_j.set_xlim(t[0], t[-1]*1.025)
+            ax_j.set_xlim(t[0], t[-1]*1.01)
             if j.max() > hi or j.min() < lo:
                 warnings.warn(
                     f"jerk spans {j.min():.0f} to {j.max():.0f}, outside the fixed "
