@@ -357,7 +357,7 @@ def plot_swing_kinematics(
         peak = int(np.argmax(a))
         ax_a.axhline(0, color=c["chrome"], linewidth=1.0, zorder=1)
         ax_a.plot(
-            t, a, color=c["accel"], linewidth=2.0, solid_capstyle="round", zorder=3
+            t[4:-5], a[4:-5], color=c["accel"], linewidth=2.0, solid_capstyle="round", zorder=3
         )
         ax_a.plot(
             [t[peak]],
