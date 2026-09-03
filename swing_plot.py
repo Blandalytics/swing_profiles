@@ -34,7 +34,7 @@ from swing_profile import SwingProfile, add_kinematics, peak_rows
 # more headroom because that unit scales with swing duration, so a long swing
 # reaches a larger number for the same physical acceleration.
 SPEED_YLIM = 90.0  # mph
-ACCEL_YLIM_G = 45.0  # g
+ACCEL_YLIM_G = 47.0  # g
 ACCEL_YLIM_NORMALIZED = 200.0  # mph per unit swing time
 
 # Jerk is asymmetric league-wide (2026: -2577 to +1511 g/s) because every
