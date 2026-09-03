@@ -355,7 +355,7 @@ def plot_swing_kinematics(
         ax_v.set_xlim(t[0], t[-1]*1.01)
 
         # --- derivative ----------------------------------------------------
-        peak = int(np.argmax(a))
+        peak = int(np.argmax(a[4:-5])) + 5
         ax_a.axhline(0, color=c["chrome"], linewidth=1.0, zorder=1)
         ax_a.plot(
             t[4:-5], a[4:-5], color=c["accel"], linewidth=2.0, solid_capstyle="round", zorder=3
@@ -389,7 +389,7 @@ def plot_swing_kinematics(
 
         # --- jerk ----------------------------------------------------------
         if show_jerk:
-            trough = int(np.argmin(j))
+            trough = int(np.argmin(j[9:-10])) + 9
             ax_j.axhline(0, color=c["chrome"], linewidth=1.0, zorder=1)
             ax_j.plot(
                 t[9:-10], j[9:-10], color=c["jerk"], linewidth=2.0, solid_capstyle="round", zorder=3
