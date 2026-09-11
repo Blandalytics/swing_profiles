@@ -441,7 +441,7 @@ def plot_swing_kinematics(
         # Keep the header block a fixed distance from the top in inches, so it
         # does not drift when a third panel makes the figure taller.
         head_y = 1 - 0.35 / figsize[1]
-        sub_y = 1 - 0.62 / figsize[1]
+        sub_y = 1 - 0.65 / figsize[1]
         if player_name:
             fig.text(
                 0.10,
