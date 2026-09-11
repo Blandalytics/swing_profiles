@@ -440,7 +440,7 @@ def plot_swing_kinematics(
         # neither panel needs a title or a legend box of its own.
         # Keep the header block a fixed distance from the top in inches, so it
         # does not drift when a third panel makes the figure taller.
-        head_y = 1 - 0.25 / figsize[1]
+        head_y = 1 - 0.3 / figsize[1]
         sub_y = 1 - 0.62 / figsize[1]
         if player_name:
             fig.text(
