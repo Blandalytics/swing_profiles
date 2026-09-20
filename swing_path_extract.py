@@ -17,6 +17,11 @@ Calibration notes (all verified against 13 cards spanning 63-80 mph):
     back against each card's printed "Bat Speed" value, impact speeds land within
     0.7 mph.
   * Markers sit on a 6px grid (~32 of them) with a larger marker drawn at impact.
+  * The left column's panels stack from the top, so a player name that wraps onto
+    two lines (Christian Encarnacion-Strand, 28 characters; 21 still fits on one)
+    pushes the whole Bat Speed panel down a line, 24 px. The x positions and the
+    y scale are unchanged, so the chart's vertical origin is measured per card
+    from its y-axis line rather than assumed -- see ``_axis_bottom``.
 """
 
 from __future__ import annotations
@@ -44,15 +49,23 @@ URL_TEMPLATE = (
 
 EXPECTED_SIZE = (1280, 720)
 
-# Search window for the bottom-left panel, in image pixels.
+# Search window for the bottom-left panel, in image pixels. The rows are for a
+# one-line player name; see ``_axis_bottom`` for why they move.
 _WIN_X0, _WIN_X1 = 5, 230
 _WIN_Y0, _WIN_Y1 = 545, 680
 
 # Axis anchors, in image pixels.
 _X_START = 19.5  # center of the first marker  -> swing_time 0.0
 _X_IMPACT = 208.5  # center of the impact marker -> swing_time 1.0
-_Y_ZERO = 664.2  # row of 0 mph
+_Y_ZERO = 664.2  # row of 0 mph, one-line name
 _PX_PER_MPH = 34.0 / 30.0  # from the 30 / 60 / 90 gridlines
+
+# The chart's y axis: a vertical line at the right edge of the chart running
+# from 90 mph down to 0, whose bottom row is the zero line.
+_AXIS_X0, _AXIS_X1 = 208, 212  # columns it occupies
+_AXIS_Y0, _AXIS_Y1 = 500, 716  # rows to search
+_AXIS_BOTTOM = 664  # its bottom row on a one-line-name card
+_AXIS_MIN_LEN = 90  # px; the real line is ~103
 
 _MIN_TRACED_COLUMNS = 60  # sanity floor; real cards trace 145-170 columns
 
@@ -87,6 +100,39 @@ def fetch_card(
         )
     resp.raise_for_status()
     return Image.open(io.BytesIO(resp.content)).convert("RGB")
+
+
+def _axis_bottom(rgb: np.ndarray) -> int:
+    """Row of the chart's zero line, found from the y axis drawn beside it.
+
+    The left column's panels stack from the top, so a player name that wraps
+    onto two lines pushes the whole Bat Speed panel -- gauge, chart and all --
+    down by a line (24 px). The x positions and the y scale are unchanged; only
+    the vertical origin moves. Anchoring on the axis line itself, rather than
+    on fixed rows, keeps a two-line name from reading 20-odd mph low.
+    """
+    strip = rgb[_AXIS_Y0:_AXIS_Y1, _AXIS_X0:_AXIS_X1].astype(np.int16).sum(axis=2)
+    bright = strip > 250
+    bottoms = []
+    for col in range(bright.shape[1]):
+        best = run = start = best_start = 0
+        for i, on in enumerate(bright[:, col]):
+            if on:
+                if run == 0:
+                    start = i
+                run += 1
+                if run > best:
+                    best, best_start = run, start
+            else:
+                run = 0
+        if best >= _AXIS_MIN_LEN:
+            bottoms.append(best_start + best - 1 + _AXIS_Y0)
+    if not bottoms:
+        raise SwingPathError(
+            "Could not find the chart's y axis on the card. The template may "
+            "have changed; the pixel anchors would need rechecking."
+        )
+    return int(np.median(bottoms))
 
 
 def _marker_mask(rgb: np.ndarray) -> np.ndarray:
@@ -134,7 +180,10 @@ def extract_swing_curve(
             "The template may have changed; the pixel anchors would need rechecking."
         )
 
-    window = np.asarray(img)[_WIN_Y0:_WIN_Y1, _WIN_X0:_WIN_X1]
+    rgb = np.asarray(img)
+    shift = _axis_bottom(rgb) - _AXIS_BOTTOM
+    y0, y1 = _WIN_Y0 + shift, min(_WIN_Y1 + shift, rgb.shape[0])
+    window = rgb[y0:y1, _WIN_X0:_WIN_X1]
     mask = _marker_mask(window)
 
     rows = np.arange(mask.shape[0])
@@ -152,10 +201,10 @@ def extract_swing_curve(
         )
 
     x_px = np.asarray(cols, dtype=float) + _WIN_X0
-    y_px = np.asarray(mids, dtype=float) + _WIN_Y0
+    y_px = np.asarray(mids, dtype=float) + y0
 
     t = (x_px - _X_START) / (_X_IMPACT - _X_START)
-    mph = (_Y_ZERO - y_px) / _PX_PER_MPH
+    mph = (_Y_ZERO + shift - y_px) / _PX_PER_MPH
     mph = _smooth(t, mph, smooth)
 
     grid = np.linspace(0.0, 1.0, n_points)
